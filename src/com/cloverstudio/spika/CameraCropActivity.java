@@ -188,40 +188,50 @@ public class CameraCropActivity extends SpikaActivity implements
 
 					@Override
 					public void onClick(View v) {
-						Bitmap resizedBitmap = getBitmapFromView(mImageView);
+						final Bitmap resizedBitmap = getBitmapFromView(mImageView);
 						ByteArrayOutputStream bs = new ByteArrayOutputStream();
 						resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100,
 								bs);
 
-						if (saveBitmapToFile(resizedBitmap, mFilePath) == true) {
-
-							if (mForProfile == true) {
-								MyProfileActivity.gProfileImage = getBitmapFromView(mImageView);
-								MyProfileActivity.gProfileImagePath = mFilePath;
-								finish();
-							} else if (mForGroup == true) {
-								CreateGroupActivity.gGroupImage = getBitmapFromView(mImageView);
-								CreateGroupActivity.gGroupImagePath = mFilePath;
-								finish();
-							} else if (mForGroupUpdate == true) {
-								GroupProfileActivity.gGroupImage = getBitmapFromView(mImageView);
-								GroupProfileActivity.gGroupImagePath = mFilePath;
-								finish();
-							} else {
-								fileUploadAsync(mFilePath);
-
-//								new FileUploadAsync(CameraCropActivity.this)
-//										.execute(mFilePath);
-								// new SendMessageAsync(getApplicationContext(),
-								// SendMessageAsync.TYPE_PHOTO)
-								// .execute(resizedBitmap);
+						new AsyncTask<Void, Void, Boolean>() {
+							@Override
+							protected Boolean doInBackground(Void... params) {
+								return saveBitmapToFile(resizedBitmap, mFilePath);
 							}
 							
-						} else {
-							Toast.makeText(CameraCropActivity.this,
-									"Failed to send photo", Toast.LENGTH_LONG)
-									.show();
-						}
+							@Override
+							protected void onPostExecute(Boolean result) {
+								if (result == true) {
+
+									if (mForProfile == true) {
+										MyProfileActivity.gProfileImage = getBitmapFromView(mImageView);
+										MyProfileActivity.gProfileImagePath = mFilePath;
+										finish();
+									} else if (mForGroup == true) {
+										CreateGroupActivity.gGroupImage = getBitmapFromView(mImageView);
+										CreateGroupActivity.gGroupImagePath = mFilePath;
+										finish();
+									} else if (mForGroupUpdate == true) {
+										GroupProfileActivity.gGroupImage = getBitmapFromView(mImageView);
+										GroupProfileActivity.gGroupImagePath = mFilePath;
+										finish();
+									} else {
+										fileUploadAsync(mFilePath);
+
+//										new FileUploadAsync(CameraCropActivity.this)
+//												.execute(mFilePath);
+										// new SendMessageAsync(getApplicationContext(),
+										// SendMessageAsync.TYPE_PHOTO)
+										// .execute(resizedBitmap);
+									}
+									
+								} else {
+									Toast.makeText(CameraCropActivity.this,
+											"Failed to send photo", Toast.LENGTH_LONG)
+											.show();
+								}
+							}
+						}.execute();
 
 					}
 				});
@@ -350,38 +360,48 @@ public class CameraCropActivity extends SpikaActivity implements
 
 						@Override
 						public void onClick(View v) {
-							Bitmap resizedBitmap = getBitmapFromView(mImageView);
+							final Bitmap resizedBitmap = getBitmapFromView(mImageView);
 
 							ByteArrayOutputStream bs = new ByteArrayOutputStream();
 							resizedBitmap.compress(Bitmap.CompressFormat.JPEG,
 									100, bs);
 
-							if (saveBitmapToFile(resizedBitmap, mFilePath) == true) {
-
-								if (mForProfile == true) {
-									MyProfileActivity.gProfileImage = getBitmapFromView(mImageView);
-									MyProfileActivity.gProfileImagePath = mFilePath;
-								} else if (mForGroup == true) {
-									CreateGroupActivity.gGroupImage = getBitmapFromView(mImageView);
-									CreateGroupActivity.gGroupImagePath = mFilePath;
-								} else if (mForGroupUpdate == true) {
-									GroupProfileActivity.gGroupImage = getBitmapFromView(mImageView);
-									GroupProfileActivity.gGroupImagePath = mFilePath;
-								} else {
-									fileUploadAsync(mFilePath);
-
-//									new FileUploadAsync(CameraCropActivity.this)
-//											.execute(mFilePath);
-									// new
-									// SendMessageAsync(getApplicationContext(),
-									// SendMessageAsync.TYPE_PHOTO)
-									// .execute(resizedBitmap);
+							new AsyncTask<Void, Void, Boolean>() {
+								@Override
+								protected Boolean doInBackground(Void... params) {
+									return saveBitmapToFile(resizedBitmap, mFilePath);
 								}
-							} else {
-								Toast.makeText(CameraCropActivity.this,
-										"Failed to send photo",
-										Toast.LENGTH_LONG).show();
-							}
+
+								@Override
+								protected void onPostExecute(Boolean result) {
+									if (result == true) {
+
+										if (mForProfile == true) {
+											MyProfileActivity.gProfileImage = getBitmapFromView(mImageView);
+											MyProfileActivity.gProfileImagePath = mFilePath;
+										} else if (mForGroup == true) {
+											CreateGroupActivity.gGroupImage = getBitmapFromView(mImageView);
+											CreateGroupActivity.gGroupImagePath = mFilePath;
+										} else if (mForGroupUpdate == true) {
+											GroupProfileActivity.gGroupImage = getBitmapFromView(mImageView);
+											GroupProfileActivity.gGroupImagePath = mFilePath;
+										} else {
+											fileUploadAsync(mFilePath);
+
+//											new FileUploadAsync(CameraCropActivity.this)
+//													.execute(mFilePath);
+											// new
+											// SendMessageAsync(getApplicationContext(),
+											// SendMessageAsync.TYPE_PHOTO)
+											// .execute(resizedBitmap);
+										}
+									} else {
+										Toast.makeText(CameraCropActivity.this,
+												"Failed to send photo",
+												Toast.LENGTH_LONG).show();
+									}
+								}
+							}.execute();
 
 						}
 					});
@@ -596,20 +616,19 @@ public class CameraCropActivity extends SpikaActivity implements
 		}
 	}
 
-	protected void onPhotoTaken(String path) {
+	protected void onPhotoTaken(final String path) {
 
 		String fileName = Uri.parse(path).getLastPathSegment();
 		mFilePath = CameraCropActivity.this.getExternalCacheDir() + "/" + fileName;
-		
-		if (!path.equals(mFilePath)) {
-			copy(new File(path), new File(mFilePath));
-		}
 
 		new AsyncTask<String, Void, byte[]>() {
 			boolean loadingFailed = false;
 
 			@Override
 			protected byte[] doInBackground(String... params) {
+				if (!path.equals(mFilePath)) {
+					copy(new File(path), new File(mFilePath));
+				}
 				try {
 
 					if (params == null)
